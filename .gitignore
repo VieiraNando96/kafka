@@ -1,0 +1,5 @@
+.venv/*
+*.md
+*.tgz
+*.log
+*.rdb

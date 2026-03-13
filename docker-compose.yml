@@ -1,0 +1,167 @@
+services:
+  kafka1:
+    image: apache/kafka:latest
+    hostname: kafka1
+    container_name: kafka1
+    ports:
+      - "9092:9092"
+    networks:
+      - my_network
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+      CLUSTER_ID: 'fEhAzqLPS8aklU4iXPqqbA'
+      KAFKA_LOG_DIRS: /tmp/kafka/data
+      KAFKA_JMX_PORT: 9999
+      KAFKA_JMX_HOSTNAME: kafka1
+      KAFKA_OPTS: -javaagent:/tmp/jmx_prometheus_javaagent-0.20.0.jar=8091:/tmp/kafka_config.yml
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 3
+      KAFKA_HEAP_OPTS: "-Xms512M -Xmx512M"
+    volumes:
+      - ./kafka-data1:/tmp/kafka/data
+      - ./monitoring/prometheus/jmx_prometheus_javaagent-0.20.0.jar:/tmp/jmx_prometheus_javaagent-0.20.0.jar
+      - ./monitoring/prometheus/kafka_config.yml:/tmp/kafka_config.yml
+
+  kafka2:
+    image: apache/kafka:latest
+    hostname: kafka2
+    container_name: kafka2
+    ports:
+      - "9094:9092"
+    networks:
+      - my_network
+    environment:
+      KAFKA_NODE_ID: 2
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka2:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+      CLUSTER_ID: 'fEhAzqLPS8aklU4iXPqqbA'
+      KAFKA_LOG_DIRS: /tmp/kafka/data
+      KAFKA_JMX_PORT: 9999
+      KAFKA_JMX_HOSTNAME: kafka2
+      KAFKA_OPTS: -javaagent:/tmp/jmx_prometheus_javaagent-0.20.0.jar=8091:/tmp/kafka_config.yml
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 3
+      KAFKA_HEAP_OPTS: "-Xms512M -Xmx512M"
+    volumes:
+      - ./kafka-data2:/tmp/kafka/data
+      - ./monitoring/prometheus/jmx_prometheus_javaagent-0.20.0.jar:/tmp/jmx_prometheus_javaagent-0.20.0.jar
+      - ./monitoring/prometheus/kafka_config.yml:/tmp/kafka_config.yml
+
+  kafka3:
+    image: apache/kafka:latest
+    hostname: kafka3
+    container_name: kafka3
+    ports:
+      - "9096:9092"
+    networks:
+      - my_network
+    environment:
+      KAFKA_NODE_ID: 3
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka3:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+      CLUSTER_ID: 'fEhAzqLPS8aklU4iXPqqbA'
+      KAFKA_LOG_DIRS: /tmp/kafka/data
+      KAFKA_JMX_PORT: 9999
+      KAFKA_JMX_HOSTNAME: kafka3
+      KAFKA_OPTS: -javaagent:/tmp/jmx_prometheus_javaagent-0.20.0.jar=8091:/tmp/kafka_config.yml
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 3
+      KAFKA_HEAP_OPTS: "-Xms512M -Xmx512M"
+    volumes:
+      - ./kafka-data3:/tmp/kafka/data
+      - ./monitoring/prometheus/jmx_prometheus_javaagent-0.20.0.jar:/tmp/jmx_prometheus_javaagent-0.20.0.jar
+      - ./monitoring/prometheus/kafka_config.yml:/tmp/kafka_config.yml
+
+  prometheus:
+    image: prom/prometheus
+    hostname: prometheus
+    container_name: prometheus
+    networks:
+      - my_network
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana
+    hostname: grafana
+    container_name: grafana
+    networks:
+      - my_network
+    depends_on:
+      - prometheus
+    environment:
+      GF_PATHS_CONFIG: /etc/grafana/config.ini
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+      - ./monitoring/grafana/config.ini:/etc/grafana/config.ini
+  
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:latest
+    container_name: kafka-connect
+    networks:
+      - my_network
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
+    ports:
+      - "8083:8083"
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: "kafka1:9092,kafka2:9092,kafka3:9092"
+      CONNECT_REST_PORT: 8083
+      CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
+      CONNECT_GROUP_ID: "connect-cluster"
+      CONNECT_CONFIG_STORAGE_TOPIC: "connect-configs"
+      CONNECT_OFFSET_STORAGE_TOPIC: "connect-offsets"
+      CONNECT_STATUS_STORAGE_TOPIC: "connect-status"
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.storage.StringConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components,/etc/kafka/connectors"
+    volumes:
+      - ./connectors:/etc/kafka/connectors
+
+  redis:
+    image: "redis:latest"
+    container_name: "my-redis"
+    ports:
+      - "6379:6379"
+    networks:
+      - my_network
+    volumes:
+      - ./redis-data:/data
+
+networks:
+  my_network:
+    name: kafka-network
+    
