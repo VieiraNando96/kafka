@@ -3,3 +3,10 @@
 *.tgz
 *.log
 *.rdb
+# Kafka local data
+kafka-data1/
+kafka-data2/
+kafka-data3/
+
+# Local Kafka distribution
+kafka_2.13-*/
