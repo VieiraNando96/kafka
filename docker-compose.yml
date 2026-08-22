@@ -1,6 +1,7 @@
 services:
   kafka1:
     image: apache/kafka:latest
+    user: 0:0
     hostname: kafka1
     container_name: kafka1
     ports:
@@ -29,12 +30,13 @@ services:
       KAFKA_HEAP_OPTS: "-Xms512M -Xmx512M"
 
     volumes:
-      - ./kafka-data1:/tmp/kafka/data
+      - kafka-data1:/tmp/kafka/data
       - ./monitoring/prometheus/jmx_prometheus_javaagent-0.20.0.jar:/tmp/jmx_prometheus_javaagent-0.20.0.jar
       - ./monitoring/prometheus/kafka_config.yml:/tmp/kafka_config.yml
 
   kafka2:
     image: apache/kafka:latest
+    user: 0:0
     hostname: kafka2
     container_name: kafka2
     ports:
@@ -63,12 +65,13 @@ services:
       KAFKA_HEAP_OPTS: "-Xms512M -Xmx512M"
 
     volumes:
-      - ./kafka-data2:/tmp/kafka/data
+      - kafka-data2:/tmp/kafka/data
       - ./monitoring/prometheus/jmx_prometheus_javaagent-0.20.0.jar:/tmp/jmx_prometheus_javaagent-0.20.0.jar
       - ./monitoring/prometheus/kafka_config.yml:/tmp/kafka_config.yml
 
   kafka3:
     image: apache/kafka:latest
+    user: 0:0
     hostname: kafka3
     container_name: kafka3
     ports:
@@ -97,7 +100,7 @@ services:
       KAFKA_HEAP_OPTS: "-Xms512M -Xmx512M"
 
     volumes:
-      - ./kafka-data3:/tmp/kafka/data
+      - kafka-data3:/tmp/kafka/data
       - ./monitoring/prometheus/jmx_prometheus_javaagent-0.20.0.jar:/tmp/jmx_prometheus_javaagent-0.20.0.jar
       - ./monitoring/prometheus/kafka_config.yml:/tmp/kafka_config.yml
 
@@ -186,3 +189,8 @@ services:
 networks:
   my_network:
     name: kafka-network
+
+volumes:
+  kafka-data1:
+  kafka-data2:
+  kafka-data3:

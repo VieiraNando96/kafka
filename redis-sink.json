@@ -1,7 +1,7 @@
 {
   "name": "redis-sink-connector",
   "config": {
-    "connector.class": "com.github.jcustenborder.kafka.connect.redis.RedisSinkConnector",
+    "connector.class": "com.redis.kafka.connect.RedisSinkConnector",
     "tasks.max": "1",
     "topics": "driver-location",
     "redis.hosts": "my-redis:6379",
