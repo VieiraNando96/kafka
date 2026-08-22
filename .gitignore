@@ -10,3 +10,5 @@ kafka-data3/
 
 # Local Kafka distribution
 kafka_2.13-*/
+
+redis-data/
